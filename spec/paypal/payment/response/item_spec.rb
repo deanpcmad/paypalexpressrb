@@ -1,13 +1,12 @@
 require 'spec_helper.rb'
 
-describe Paypal::Payment::Response::Info do
+describe Paypal::Payment::Response::Item do
   let :attributes do
     {
       :NAME => 'Item Name',
       :DESC => 'Item Description',
       :QTY => '1',
       :NUMBER => '1',
-      :ITEMCATEGORY => 'Digital',
       :ITEMWIDTHVALUE => '1.0',
       :ITEMHEIGHTVALUE => '2.0',
       :ITEMLENGTHVALUE => '3.0',
@@ -20,7 +19,6 @@ describe Paypal::Payment::Response::Info do
     its(:name) { should == 'Item Name' }
     its(:description) { should == 'Item Description' }
     its(:quantity) { should == 1 }
-    its(:category) { should == 'Digital' }
     its(:width) { should == '1.0' }
     its(:height) { should == '2.0' }
     its(:length) { should == '3.0' }

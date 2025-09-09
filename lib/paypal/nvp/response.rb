@@ -38,7 +38,7 @@ module Paypal
       }
       attr_accessor *@@attribute_mapping.values
       attr_accessor :shipping_options_is_default, :success_page_redirect_requested, :insurance_option_selected
-      attr_accessor :amount, :description, :ship_to, :bill_to, :payer, :recurring, :billing_agreement, :refund
+      attr_accessor :amount, :description, :ship_to, :bill_to, :payer, :refund
       attr_accessor :payment_responses, :payment_info, :items
       alias_method :colleration_id, :correlation_id # NOTE: I made a typo :p
 
@@ -93,76 +93,6 @@ module Paypal
             :company => attrs.delete(:BUSINESS),
             :phone_number => attrs.delete(:PHONENUM)
           )
-        end
-        if attrs[:PROFILEID]
-          @recurring = Payment::Recurring.new(
-            :identifier => attrs.delete(:PROFILEID),
-            # NOTE:
-            #  CreateRecurringPaymentsProfile returns PROFILESTATUS
-            #  GetRecurringPaymentsProfileDetails returns STATUS
-            :description => @description,
-            :status => attrs.delete(:STATUS) || attrs.delete(:PROFILESTATUS),
-            :start_date => attrs.delete(:PROFILESTARTDATE),
-            :name => attrs.delete(:SUBSCRIBERNAME),
-            :reference => attrs.delete(:PROFILEREFERENCE),
-            :auto_bill => attrs.delete(:AUTOBILLOUTAMT),
-            :max_fails => attrs.delete(:MAXFAILEDPAYMENTS),
-            :aggregate_amount => attrs.delete(:AGGREGATEAMT),
-            :aggregate_optional_amount => attrs.delete(:AGGREGATEOPTIONALAMT),
-            :final_payment_date => attrs.delete(:FINALPAYMENTDUEDATE)
-          )
-          if attrs[:BILLINGPERIOD]
-            @recurring.billing = Payment::Recurring::Billing.new(
-              :amount => @amount,
-              :currency_code => @currency_code,
-              :period => attrs.delete(:BILLINGPERIOD),
-              :frequency => attrs.delete(:BILLINGFREQUENCY),
-              :total_cycles => attrs.delete(:TOTALBILLINGCYCLES),
-              :trial => {
-                :period => attrs.delete(:TRIALBILLINGPERIOD),
-                :frequency => attrs.delete(:TRIALBILLINGFREQUENCY),
-                :total_cycles => attrs.delete(:TRIALTOTALBILLINGCYCLES),
-                :currency_code => attrs.delete(:TRIALCURRENCYCODE),
-                :amount => attrs.delete(:TRIALAMT),
-                :tax_amount => attrs.delete(:TRIALTAXAMT),
-                :shipping_amount => attrs.delete(:TRIALSHIPPINGAMT),
-                :paid => attrs.delete(:TRIALAMTPAID)
-              }
-            )
-          end
-          if attrs[:REGULARAMT]
-            @recurring.regular_billing = Payment::Recurring::Billing.new(
-              :amount => attrs.delete(:REGULARAMT),
-              :shipping_amount => attrs.delete(:REGULARSHIPPINGAMT),
-              :tax_amount => attrs.delete(:REGULARTAXAMT),
-              :currency_code => attrs.delete(:REGULARCURRENCYCODE),
-              :period => attrs.delete(:REGULARBILLINGPERIOD),
-              :frequency => attrs.delete(:REGULARBILLINGFREQUENCY),
-              :total_cycles => attrs.delete(:REGULARTOTALBILLINGCYCLES),
-              :paid => attrs.delete(:REGULARAMTPAID)
-            )
-            @recurring.summary = Payment::Recurring::Summary.new(
-              :next_billing_date => attrs.delete(:NEXTBILLINGDATE),
-              :cycles_completed => attrs.delete(:NUMCYCLESCOMPLETED),
-              :cycles_remaining => attrs.delete(:NUMCYCLESREMAINING),
-              :outstanding_balance => attrs.delete(:OUTSTANDINGBALANCE),
-              :failed_count => attrs.delete(:FAILEDPAYMENTCOUNT),
-              :last_payment_date => attrs.delete(:LASTPAYMENTDATE),
-              :last_payment_amount => attrs.delete(:LASTPAYMENTAMT)
-            )
-          end
-        end
-        if attrs[:BILLINGAGREEMENTID]
-          @billing_agreement = Payment::Response::Reference.new(
-            :identifier => attrs.delete(:BILLINGAGREEMENTID),
-            :description => attrs.delete(:BILLINGAGREEMENTDESCRIPTION),
-            :status => attrs.delete(:BILLINGAGREEMENTSTATUS)
-          )
-          billing_agreement_info = Payment::Response::Info.attribute_mapping.keys.inject({}) do |billing_agreement_info, key|
-            billing_agreement_info.merge! key => attrs.delete(key)
-          end
-          @billing_agreement.info = Payment::Response::Info.new billing_agreement_info
-          @billing_agreement.info.amount = @amount
         end
         if attrs[:REFUNDTRANSACTIONID]
           @refund = Payment::Response::Refund.new(

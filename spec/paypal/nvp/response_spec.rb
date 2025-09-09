@@ -18,17 +18,6 @@ describe Paypal::NVP::Response do
     )
   end
 
-  let :recurring_profile do
-    Paypal::Payment::Recurring.new(
-      :start_date => Time.utc(2011, 2, 8, 9, 0, 0),
-      :description => 'Recurring Profile',
-      :billing => {
-        :period => :Month,
-        :frequency => 1,
-        :amount => 1000
-      }
-    )
-  end
 
   describe '.new' do
     context 'when non-supported attributes are given' do
@@ -93,55 +82,8 @@ describe Paypal::NVP::Response do
         response.payment_info.first.should be_instance_of(Paypal::Payment::Response::Info)
       end
 
-      context 'when billing_agreement is included' do
-        before do
-          fake_response 'DoExpressCheckoutPayment/success_with_billing_agreement'
-        end
-
-        it 'should have billing_agreement' do
-          Paypal.logger.should_not_receive(:warn)
-          response = request.checkout! 'token', 'payer_id', payment_request
-          response.billing_agreement.identifier.should == 'B-1XR87946TC504770W'
-        end
-      end
     end
 
-    context 'when CreateRecurringPaymentsProfile response given' do
-      before do
-        fake_response 'CreateRecurringPaymentsProfile/success'
-      end
-
-      it 'should handle all attributes' do
-        Paypal.logger.should_not_receive(:warn)
-        response = request.subscribe! 'token', recurring_profile
-        response.recurring.identifier.should == 'I-L8N58XFUCET3'
-      end
-    end
-
-    context 'when GetRecurringPaymentsProfileDetails response given' do
-      before do
-        fake_response 'GetRecurringPaymentsProfileDetails/success'
-      end
-
-      it 'should handle all attributes' do
-        Paypal.logger.should_not_receive(:warn)
-        response = request.subscription 'profile_id'
-        response.recurring.billing.amount.total.should == 1000
-        response.recurring.regular_billing.paid.should == 1000
-        response.recurring.summary.next_billing_date.should == '2011-03-04T10:00:00Z'
-      end
-    end
-
-    context 'when ManageRecurringPaymentsProfileStatus response given' do
-      before do
-        fake_response 'ManageRecurringPaymentsProfileStatus/success'
-      end
-
-      it 'should handle all attributes' do
-        Paypal.logger.should_not_receive(:warn)
-        request.renew! 'profile_id', :Cancel
-      end
-    end
   end
 
   describe '#success?' do

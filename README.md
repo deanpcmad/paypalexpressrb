@@ -1,14 +1,10 @@
 # PayPal Express Checkout Ruby Gem
 
+Originally by [nov/paypal-express](https://github.com/nov/paypal-express).
+
 [![CI](https://github.com/deanpcmad/paypal-express/actions/workflows/ci.yml/badge.svg)](https://github.com/deanpcmad/paypal-express/actions/workflows/ci.yml)
 
-A Ruby client library for PayPal Express Checkout API that supports:
-
-- **Instant Payments** - One-time payments
-- **Recurring Payments** - Subscription billing
-- **Digital Goods** - Express Checkout for digital products
-- **Reference Transactions** - Billing agreements
-- **IPN (Instant Payment Notification)** - Payment webhooks
+A Ruby client library for PayPal Express Checkout API that supports Instant Payments.
 
 ## Installation
 
@@ -241,58 +237,6 @@ payment = Paypal::Payment::Request.new(
   currency:    'USD',
   description: 'Online Store Purchase',
   items:       items
-)
-```
-
-### Recurring Payments
-
-```ruby
-# 1. Setup billing agreement
-billing_agreement = Paypal::Payment::Request.new(
-  billing_type: :RecurringPayments,
-  billing_agreement_description: 'Monthly Subscription'
-)
-
-response = request.setup(
-  billing_agreement,
-  return_url,
-  cancel_url
-)
-
-# 2. After user approves, create recurring profile
-recurring_profile = Paypal::Payment::Recurring.new(
-  start_date:  Time.now + 1.day,
-  description: 'Monthly Subscription',
-  billing: {
-    period:    :Month,
-    frequency: 1,
-    amount:    29.99
-  }
-)
-
-profile_response = request.subscribe!(token, recurring_profile)
-
-if profile_response.success?
-  profile_id = profile_response.recurring.identifier
-  # Save profile_id for managing subscription
-end
-```
-
-### Digital Goods
-
-```ruby
-payment = Paypal::Payment::Request.new(
-  amount:      9.99,
-  currency:    'USD',
-  description: 'Digital Download',
-  items: [
-    Paypal::Payment::Request::Item.new(
-      name:     'eBook',
-      amount:   9.99,
-      quantity: 1,
-      category: :Digital  # Important for digital goods
-    )
-  ]
 )
 ```
 

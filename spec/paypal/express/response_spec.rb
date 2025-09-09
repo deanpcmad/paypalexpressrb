@@ -13,9 +13,9 @@ describe Paypal::Express::Response do
     )
   end
   let :payment_request do
-    Paypal::Payment::Request.new( 
-      :billing_type => :RecurringPayments,
-      :billing_agreement_description => 'Recurring Payment Request'
+    Paypal::Payment::Request.new(
+      :amount => 100,
+      :description => 'Test Payment Request'
     )
   end
   let(:response) { request.setup payment_request, return_url, cancel_url }

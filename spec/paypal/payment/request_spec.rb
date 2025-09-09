@@ -28,21 +28,6 @@ describe Paypal::Payment::Request do
     )
   end
 
-  let :recurring_request do
-    Paypal::Payment::Request.new(
-      :currency_code => :JPY,
-      :billing_type => :RecurringPayments,
-      :billing_agreement_description => 'Recurring Payment Request'
-    )
-  end
-
-  let :reference_transaction_request do
-    Paypal::Payment::Request.new(
-      :currency_code => :JPY,
-      :billing_type => :MerchantInitiatedBillingSingleAgreement,
-      :billing_agreement_description => 'Reference Transaction Request'
-    )
-  end
 
   describe '.new' do
     it 'should handle Instant Payment parameters' do
@@ -54,17 +39,6 @@ describe Paypal::Payment::Request do
       instant_request.notify_url.should == 'http://merchant.example.com/notify'
     end
 
-    it 'should handle Recurring Payment parameters' do
-      recurring_request.currency_code.should == :JPY
-      recurring_request.billing_type.should == :RecurringPayments
-      recurring_request.billing_agreement_description.should == 'Recurring Payment Request'
-    end
-
-    it 'should handle Recurring Payment parameters' do
-      reference_transaction_request.currency_code.should == :JPY
-      reference_transaction_request.billing_type.should == :MerchantInitiatedBillingSingleAgreement
-      reference_transaction_request.billing_agreement_description.should == 'Reference Transaction Request'
-    end
   end
 
   describe '#to_params' do
@@ -91,27 +65,6 @@ describe Paypal::Payment::Request do
       }
     end
 
-    it 'should handle Recurring Payment parameters' do
-      recurring_request.to_params.should == {
-        :PAYMENTREQUEST_0_AMT => "0.00",
-        :PAYMENTREQUEST_0_TAXAMT => "0.00",
-        :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00",
-        :PAYMENTREQUEST_0_CURRENCYCODE => :JPY,
-        :L_BILLINGTYPE0 => :RecurringPayments,
-        :L_BILLINGAGREEMENTDESCRIPTION0 => "Recurring Payment Request"
-      }
-    end
-
-    it 'should handle Reference Transactions parameters' do
-      reference_transaction_request.to_params.should == {
-        :PAYMENTREQUEST_0_AMT => "0.00",
-        :PAYMENTREQUEST_0_TAXAMT => "0.00",
-        :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00",
-        :PAYMENTREQUEST_0_CURRENCYCODE => :JPY,
-        :L_BILLINGTYPE0 => :MerchantInitiatedBillingSingleAgreement,
-        :L_BILLINGAGREEMENTDESCRIPTION0 => "Reference Transaction Request"
-      }
-    end
   end
 
   describe '#items_amount' do

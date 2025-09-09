@@ -7,7 +7,6 @@ module Paypal
         :DESC => :description,
         :QTY => :quantity,
         :NUMBER => :number,
-        :ITEMCATEGORY => :category,
         :ITEMWIDTHVALUE => :width,
         :ITEMHEIGHTVALUE => :height,
         :ITEMLENGTHVALUE => :length,

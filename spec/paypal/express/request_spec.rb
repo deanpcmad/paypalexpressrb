@@ -54,31 +54,6 @@ describe Paypal::Express::Request do
     )
   end
 
-  let :recurring_payment_request do
-    Paypal::Payment::Request.new(
-      :billing_type => :RecurringPayments,
-      :billing_agreement_description => 'Recurring Payment Request'
-    )
-  end
-
-  let :recurring_profile do
-    Paypal::Payment::Recurring.new(
-      :start_date => Time.utc(2011, 2, 8, 9, 0, 0),
-      :description => 'Recurring Profile',
-      :billing => {
-        :period => :Month,
-        :frequency => 1,
-        :amount => 1000
-      }
-    )
-  end
-
-  let :reference_transaction_request do
-    Paypal::Payment::Request.new(
-      :billing_type => :MerchantInitiatedBilling,
-      :billing_agreement_description => 'Billing Agreement Request'
-    )
-  end
 
   describe '.new' do
     context 'when any required parameters are missing' do
@@ -106,7 +81,7 @@ describe Paypal::Express::Request do
   describe '#setup' do
     it 'should return Paypal::Express::Response' do
       fake_response 'SetExpressCheckout/success'
-      response = instance.setup recurring_payment_request, return_url, cancel_url
+      response = instance.setup instant_payment_request, return_url, cancel_url
       response.should be_instance_of Paypal::Express::Response
     end
 
@@ -180,41 +155,6 @@ describe Paypal::Express::Request do
       end
     end
 
-    context 'when recurring payment request given' do
-      it 'should call SetExpressCheckout' do
-        expect do
-          instance.setup recurring_payment_request, return_url, cancel_url
-        end.to request_to nvp_endpoint, :post
-        instance._method_.should == :SetExpressCheckout
-        instance._sent_params_.should include({
-          :L_BILLINGTYPE0 => :RecurringPayments,
-          :L_BILLINGAGREEMENTDESCRIPTION0 => 'Recurring Payment Request',
-          :RETURNURL => return_url,
-          :CANCELURL => cancel_url,
-          :PAYMENTREQUEST_0_AMT => '0.00',
-          :PAYMENTREQUEST_0_TAXAMT => "0.00",
-          :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00"
-        })
-      end
-    end
-
-    context 'when reference transaction request given' do
-      it 'should call SetExpressCheckout' do
-        expect do
-          instance.setup reference_transaction_request, return_url, cancel_url
-        end.to request_to nvp_endpoint, :post
-        instance._method_.should == :SetExpressCheckout
-        instance._sent_params_.should include({
-          :L_BILLINGTYPE0 => :MerchantInitiatedBilling,
-          :L_BILLINGAGREEMENTDESCRIPTION0 => 'Billing Agreement Request',
-          :RETURNURL => return_url,
-          :CANCELURL => cancel_url,
-          :PAYMENTREQUEST_0_AMT => '0.00',
-          :PAYMENTREQUEST_0_TAXAMT => "0.00",
-          :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00"
-        })
-      end
-    end
   end
 
   describe '#details' do
@@ -364,203 +304,6 @@ describe Paypal::Express::Request do
         instance._method_.should == :DoExpressCheckoutPayment
         response.items.count.should == 20
       end
-    end
-  end
-
-  describe '#subscribe!' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'CreateRecurringPaymentsProfile/success'
-      response = instance.subscribe! 'token', recurring_profile
-      response.should be_instance_of Paypal::Express::Response
-    end
-
-    it 'should call CreateRecurringPaymentsProfile' do
-      expect do
-        instance.subscribe! 'token', recurring_profile
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :CreateRecurringPaymentsProfile
-      instance._sent_params_.should include({
-        :DESC => 'Recurring Profile',
-        :TOKEN => 'token',
-        :SHIPPINGAMT => '0.00',
-        :AMT => '1000.00',
-        :BILLINGFREQUENCY => 1,
-        :MAXFAILEDPAYMENTS => 0,
-        :BILLINGPERIOD => :Month,
-        :TAXAMT => '0.00',
-        :PROFILESTARTDATE => '2011-02-08 09:00:00',
-        :TOTALBILLINGCYCLES => 0
-      })
-    end
-  end
-
-  describe '#subscription' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'GetRecurringPaymentsProfileDetails/success'
-      response = instance.subscription 'profile_id'
-      response.should be_instance_of(Paypal::Express::Response)
-    end
-
-    it 'should call GetRecurringPaymentsProfileDetails' do
-      expect do
-        instance.subscription 'profile_id'
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :GetRecurringPaymentsProfileDetails
-      instance._sent_params_.should include({
-        :PROFILEID => 'profile_id'
-      })
-    end
-  end
-
-  describe '#renew!' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'ManageRecurringPaymentsProfileStatus/success'
-      response = instance.renew! 'profile_id', :Cancel
-      response.should be_instance_of Paypal::Express::Response
-    end
-
-    it 'should call ManageRecurringPaymentsProfileStatus' do
-      expect do
-        instance.renew! 'profile_id', :Cancel
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :ManageRecurringPaymentsProfileStatus
-      instance._sent_params_.should include({
-        :ACTION => :Cancel,
-        :PROFILEID => 'profile_id'
-      })
-    end
-  end
-
-  describe '#cancel!' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'ManageRecurringPaymentsProfileStatus/success'
-      response = instance.cancel! 'profile_id'
-      response.should be_instance_of(Paypal::Express::Response)
-    end
-
-    it 'should call ManageRecurringPaymentsProfileStatus' do
-      expect do
-        instance.cancel! 'profile_id'
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :ManageRecurringPaymentsProfileStatus
-      instance._sent_params_.should include({
-        :ACTION => :Cancel,
-        :PROFILEID => 'profile_id'
-      })
-    end
-  end
-
-  describe '#suspend!' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'ManageRecurringPaymentsProfileStatus/success'
-      response = instance.cancel! 'profile_id'
-      response.should be_instance_of Paypal::Express::Response
-    end
-
-    it 'should call ManageRecurringPaymentsProfileStatus' do
-      expect do
-        instance.suspend! 'profile_id'
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :ManageRecurringPaymentsProfileStatus
-      instance._sent_params_.should include({
-        :ACTION => :Suspend,
-        :PROFILEID => 'profile_id'
-      })
-    end
-  end
-
-  describe '#reactivate!' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'ManageRecurringPaymentsProfileStatus/success'
-      response = instance.cancel! 'profile_id'
-      response.should be_instance_of Paypal::Express::Response
-    end
-
-    it 'should call ManageRecurringPaymentsProfileStatus' do
-      expect do
-        instance.reactivate! 'profile_id'
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :ManageRecurringPaymentsProfileStatus
-      instance._sent_params_.should include({
-        :ACTION => :Reactivate,
-        :PROFILEID => 'profile_id'
-      })
-    end
-  end
-
-  describe '#agree!' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'CreateBillingAgreement/success'
-      response = instance.agree! 'token'
-      response.should be_instance_of Paypal::Express::Response
-    end
-
-    it 'should call CreateBillingAgreement' do
-      expect do
-        instance.agree! 'token'
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :CreateBillingAgreement
-      instance._sent_params_.should include({
-        :TOKEN => 'token'
-      })
-    end
-  end
-
-  describe '#agreement' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'BillAgreementUpdate/fetch'
-      response = instance.agreement 'reference_id'
-      response.should be_instance_of Paypal::Express::Response
-    end
-
-    it 'should call BillAgreementUpdate' do
-      expect do
-        instance.agreement 'reference_id'
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :BillAgreementUpdate
-      instance._sent_params_.should include({
-        :REFERENCEID => 'reference_id'
-      })
-    end
-  end
-
-  describe '#charge!' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'DoReferenceTransaction/success'
-      response = instance.charge! 'billing_agreement_id', 1000
-      response.should be_instance_of Paypal::Express::Response
-    end
-
-    it 'should call DoReferenceTransaction' do
-      expect do
-        instance.charge! 'billing_agreement_id', 1000, :currency_code => :JPY
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :DoReferenceTransaction
-      instance._sent_params_.should include({
-        :REFERENCEID => 'billing_agreement_id',
-        :AMT => '1000.00',
-        :PAYMENTACTION => :Sale,
-        :CURRENCYCODE => :JPY
-      })
-    end
-  end
-
-  describe '#revoke!' do
-    it 'should return Paypal::Express::Response' do
-      fake_response 'BillAgreementUpdate/revoke'
-      response = instance.revoke! 'reference_id'
-      response.should be_instance_of Paypal::Express::Response
-    end
-
-    it 'should call BillAgreementUpdate' do
-      expect do
-        instance.revoke! 'reference_id'
-      end.to request_to nvp_endpoint, :post
-      instance._method_.should == :BillAgreementUpdate
-      instance._sent_params_.should include({
-        :REFERENCEID => 'reference_id',
-        :BillingAgreementStatus => :Canceled
-      })
     end
   end
 
