@@ -3,7 +3,7 @@ require 'active_support'
 require 'active_support/core_ext'
 require 'attr_required'
 require 'attr_optional'
-require 'rest_client'
+require 'faraday'
 
 module Paypal
   mattr_accessor :api_version

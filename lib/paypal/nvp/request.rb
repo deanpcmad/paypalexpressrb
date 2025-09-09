@@ -43,7 +43,17 @@ module Paypal
       private
 
       def post(method, params)
-        RestClient.post(self.class.endpoint, common_params.merge(params).merge(:METHOD => method))
+        connection = Faraday.new(url: self.class.endpoint) do |faraday|
+          faraday.request :url_encoded
+          faraday.response :raise_error
+          faraday.adapter Faraday.default_adapter
+        end
+        
+        response = connection.post do |req|
+          req.body = common_params.merge(params).merge(:METHOD => method)
+        end
+        
+        response.body
       end
 
       def handle_response
@@ -57,8 +67,10 @@ module Paypal
         else
           raise Exception::APIError.new(response)
         end
-      rescue RestClient::Exception => e
-        raise Exception::HttpError.new(e.http_code, e.message, e.http_body)
+      rescue Faraday::Error => e
+        status = e.response ? e.response[:status] : nil
+        body = e.response ? e.response[:body] : nil
+        raise Exception::HttpError.new(status, e.message, body)
       end
     end
   end
