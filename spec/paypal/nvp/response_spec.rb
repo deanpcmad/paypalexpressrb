@@ -143,4 +143,27 @@ describe Paypal::NVP::Response do
       end
     end
   end
+
+  describe '#success?' do
+    context 'when ACK is Success' do
+      it 'returns true' do
+        response = Paypal::NVP::Response.new(:ACK => 'Success')
+        response.success?.should be_truthy
+      end
+    end
+
+    context 'when ACK is Failure' do
+      it 'returns false' do
+        response = Paypal::NVP::Response.new(:ACK => 'Failure')
+        response.success?.should be_falsey
+      end
+    end
+
+    context 'when ACK is nil' do
+      it 'returns false' do
+        response = Paypal::NVP::Response.new
+        response.success?.should be_falsey
+      end
+    end
+  end
 end

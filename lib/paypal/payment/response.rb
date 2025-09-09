@@ -68,6 +68,10 @@ module Paypal
           Paypal.log "Ignored Parameter (#{self.class}): #{key}=#{value}", :warn
         end
       end
+
+      def success?
+        ack == 'Success'
+      end
     end
   end
 end
