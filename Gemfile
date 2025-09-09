@@ -1,9 +1,9 @@
 source 'http://rubygems.org'
 
-platform :jruby do
-  gem 'jruby-openssl', '>= 0.7'
-end
-
 gemspec
 
+gem "rake"
+gem "simplecov"
+gem "rspec"
+gem "rspec-its"
 gem 'fakeweb', :git => 'https://github.com/chrisk/fakeweb.git'
