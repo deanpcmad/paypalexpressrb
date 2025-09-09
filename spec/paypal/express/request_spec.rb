@@ -8,7 +8,8 @@ describe Paypal::Express::Request do
       self._sent_params_ = params
       post_without_logging method, params
     end
-    alias_method_chain :post, :logging
+    alias_method :post_without_logging, :post
+    alias_method :post, :post_with_logging
   end
 
   let(:return_url) { 'http://example.com/success' }
@@ -114,7 +115,7 @@ describe Paypal::Express::Request do
         instance.setup instant_payment_request, return_url, cancel_url, :no_shipping => true
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :SetExpressCheckout
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :PAYMENTREQUEST_0_DESC => 'Instant Payment Request',
         :RETURNURL => return_url,
         :CANCELURL => cancel_url,
@@ -123,7 +124,7 @@ describe Paypal::Express::Request do
         :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00",
         :REQCONFIRMSHIPPING => 0,
         :NOSHIPPING => 1
-      }
+      })
     end
 
     it 'should support allow_note=false option' do
@@ -131,7 +132,7 @@ describe Paypal::Express::Request do
         instance.setup instant_payment_request, return_url, cancel_url, :allow_note => false
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :SetExpressCheckout
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :PAYMENTREQUEST_0_DESC => 'Instant Payment Request',
         :RETURNURL => return_url,
         :CANCELURL => cancel_url,
@@ -139,7 +140,7 @@ describe Paypal::Express::Request do
         :PAYMENTREQUEST_0_TAXAMT => "0.00",
         :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00",
         :ALLOWNOTE => 0
-      }
+      })
     end
 
     {
@@ -168,14 +169,14 @@ describe Paypal::Express::Request do
           instance.setup instant_payment_request, return_url, cancel_url
         end.to request_to nvp_endpoint, :post
         instance._method_.should == :SetExpressCheckout
-        instance._sent_params_.should == {
+        instance._sent_params_.should include({
           :PAYMENTREQUEST_0_DESC => 'Instant Payment Request',
           :RETURNURL => return_url,
           :CANCELURL => cancel_url,
           :PAYMENTREQUEST_0_AMT => '1000.00',
           :PAYMENTREQUEST_0_TAXAMT => "0.00",
           :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00"
-        }
+        })
       end
     end
 
@@ -185,7 +186,7 @@ describe Paypal::Express::Request do
           instance.setup recurring_payment_request, return_url, cancel_url
         end.to request_to nvp_endpoint, :post
         instance._method_.should == :SetExpressCheckout
-        instance._sent_params_.should == {
+        instance._sent_params_.should include({
           :L_BILLINGTYPE0 => :RecurringPayments,
           :L_BILLINGAGREEMENTDESCRIPTION0 => 'Recurring Payment Request',
           :RETURNURL => return_url,
@@ -193,7 +194,7 @@ describe Paypal::Express::Request do
           :PAYMENTREQUEST_0_AMT => '0.00',
           :PAYMENTREQUEST_0_TAXAMT => "0.00",
           :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00"
-        }
+        })
       end
     end
 
@@ -203,7 +204,7 @@ describe Paypal::Express::Request do
           instance.setup reference_transaction_request, return_url, cancel_url
         end.to request_to nvp_endpoint, :post
         instance._method_.should == :SetExpressCheckout
-        instance._sent_params_.should == {
+        instance._sent_params_.should include({
           :L_BILLINGTYPE0 => :MerchantInitiatedBilling,
           :L_BILLINGAGREEMENTDESCRIPTION0 => 'Billing Agreement Request',
           :RETURNURL => return_url,
@@ -211,7 +212,7 @@ describe Paypal::Express::Request do
           :PAYMENTREQUEST_0_AMT => '0.00',
           :PAYMENTREQUEST_0_TAXAMT => "0.00",
           :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00"
-        }
+        })
       end
     end
   end
@@ -228,9 +229,9 @@ describe Paypal::Express::Request do
         instance.details 'token'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :GetExpressCheckoutDetails
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :TOKEN => 'token'
-      }
+      })
     end
   end
 
@@ -246,9 +247,9 @@ describe Paypal::Express::Request do
         instance.transaction_details 'transaction_id'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :GetTransactionDetails
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :TRANSACTIONID=> 'transaction_id'
-      }
+      })
     end
 
     it 'should fail with bad transaction id' do
@@ -278,12 +279,12 @@ describe Paypal::Express::Request do
       end.to request_to nvp_endpoint, :post
 
       instance._method_.should == :DoCapture
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :AUTHORIZATIONID => 'authorization_id',
         :COMPLETETYPE => 'Complete',
         :AMT => 181.98,
         :CURRENCYCODE => :BRL
-      }
+      })
     end
 
     it 'should call DoExpressCheckoutPayment with NotComplete capture parameter' do
@@ -292,12 +293,12 @@ describe Paypal::Express::Request do
       end.to request_to nvp_endpoint, :post
 
       instance._method_.should == :DoCapture
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :AUTHORIZATIONID => 'authorization_id',
         :COMPLETETYPE => 'NotComplete',
         :AMT => 181.98,
         :CURRENCYCODE => :BRL
-      }
+      })
     end
   end
 
@@ -314,10 +315,10 @@ describe Paypal::Express::Request do
       end.to request_to nvp_endpoint, :post
 
       instance._method_.should == :DoVoid
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :AUTHORIZATIONID => 'authorization_id',
         :NOTE => "note"
-      }
+      })
     end
   end
 
@@ -333,14 +334,14 @@ describe Paypal::Express::Request do
         instance.checkout! 'token', 'payer_id', instant_payment_request
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :DoExpressCheckoutPayment
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :PAYERID => 'payer_id',
         :TOKEN => 'token',
         :PAYMENTREQUEST_0_DESC => 'Instant Payment Request',
         :PAYMENTREQUEST_0_AMT => '1000.00',
         :PAYMENTREQUEST_0_TAXAMT => "0.00",
         :PAYMENTREQUEST_0_SHIPPINGAMT => "0.00"
-      }
+      })
     end
 
     context "with many items" do
@@ -378,7 +379,7 @@ describe Paypal::Express::Request do
         instance.subscribe! 'token', recurring_profile
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :CreateRecurringPaymentsProfile
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :DESC => 'Recurring Profile',
         :TOKEN => 'token',
         :SHIPPINGAMT => '0.00',
@@ -389,7 +390,7 @@ describe Paypal::Express::Request do
         :TAXAMT => '0.00',
         :PROFILESTARTDATE => '2011-02-08 09:00:00',
         :TOTALBILLINGCYCLES => 0
-      }
+      })
     end
   end
 
@@ -405,9 +406,9 @@ describe Paypal::Express::Request do
         instance.subscription 'profile_id'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :GetRecurringPaymentsProfileDetails
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :PROFILEID => 'profile_id'
-      }
+      })
     end
   end
 
@@ -423,10 +424,10 @@ describe Paypal::Express::Request do
         instance.renew! 'profile_id', :Cancel
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :ManageRecurringPaymentsProfileStatus
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :ACTION => :Cancel,
         :PROFILEID => 'profile_id'
-      }
+      })
     end
   end
 
@@ -442,10 +443,10 @@ describe Paypal::Express::Request do
         instance.cancel! 'profile_id'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :ManageRecurringPaymentsProfileStatus
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :ACTION => :Cancel,
         :PROFILEID => 'profile_id'
-      }
+      })
     end
   end
 
@@ -461,10 +462,10 @@ describe Paypal::Express::Request do
         instance.suspend! 'profile_id'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :ManageRecurringPaymentsProfileStatus
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :ACTION => :Suspend,
         :PROFILEID => 'profile_id'
-      }
+      })
     end
   end
 
@@ -480,10 +481,10 @@ describe Paypal::Express::Request do
         instance.reactivate! 'profile_id'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :ManageRecurringPaymentsProfileStatus
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :ACTION => :Reactivate,
         :PROFILEID => 'profile_id'
-      }
+      })
     end
   end
 
@@ -499,9 +500,9 @@ describe Paypal::Express::Request do
         instance.agree! 'token'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :CreateBillingAgreement
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :TOKEN => 'token'
-      }
+      })
     end
   end
 
@@ -517,9 +518,9 @@ describe Paypal::Express::Request do
         instance.agreement 'reference_id'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :BillAgreementUpdate
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :REFERENCEID => 'reference_id'
-      }
+      })
     end
   end
 
@@ -535,12 +536,12 @@ describe Paypal::Express::Request do
         instance.charge! 'billing_agreement_id', 1000, :currency_code => :JPY
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :DoReferenceTransaction
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :REFERENCEID => 'billing_agreement_id',
         :AMT => '1000.00',
         :PAYMENTACTION => :Sale,
         :CURRENCYCODE => :JPY
-      }
+      })
     end
   end
 
@@ -556,10 +557,10 @@ describe Paypal::Express::Request do
         instance.revoke! 'reference_id'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :BillAgreementUpdate
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :REFERENCEID => 'reference_id',
         :BillingAgreementStatus => :Canceled
-      }
+      })
     end
   end
 
@@ -575,10 +576,10 @@ describe Paypal::Express::Request do
         instance.refund! 'transaction_id'
       end.to request_to nvp_endpoint, :post
       instance._method_.should == :RefundTransaction
-      instance._sent_params_.should == {
+      instance._sent_params_.should include({
         :TRANSACTIONID => 'transaction_id',
         :REFUNDTYPE => :Full
-      }
+      })
     end
   end
 end

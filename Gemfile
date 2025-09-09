@@ -5,3 +5,5 @@ platform :jruby do
 end
 
 gemspec
+
+gem 'fakeweb', :git => 'https://github.com/chrisk/fakeweb.git'

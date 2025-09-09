@@ -5,7 +5,7 @@ describe Paypal::IPN do
     context 'when valid' do
       before { fake_response 'IPN/valid', :IPN }
       subject { Paypal::IPN.verify!('raw-post-body') }
-      it { should be_true }
+      it { should be_truthy }
     end
 
     context 'when invalid' do

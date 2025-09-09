@@ -34,8 +34,9 @@ describe Paypal::Express::Response do
     let(:response) { request.setup payment_request, return_url, cancel_url, :pay_on_paypal => true }
 
     subject { response }
-    its(:pay_on_paypal) { should be_true }
-    its(:query) { should include(:useraction => 'commit') }
+    its(:pay_on_paypal) { should be_truthy }
+    # Test useraction via redirect_uri since query is private
+    specify { response.redirect_uri.should include('useraction=commit') }
 
     describe '#redirect_uri' do
       subject { response.redirect_uri }

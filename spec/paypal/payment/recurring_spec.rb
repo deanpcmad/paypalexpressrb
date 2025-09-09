@@ -159,11 +159,11 @@ describe Paypal::Payment::Recurring do
 
     it 'should detect numeric attributes' do
       numeric_attributes.each do |key|
-        instance.numeric_attribute?(key).should be_true
+        instance.numeric_attribute?(key).should be_truthy
       end
       non_numeric_keys = keys - numeric_attributes
       non_numeric_keys.each do |key|
-        instance.numeric_attribute?(key).should be_false
+        instance.numeric_attribute?(key).should be_falsey
       end
     end
   end
